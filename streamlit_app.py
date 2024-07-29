@@ -108,8 +108,7 @@ if st.button('Analyze') and api_key:
         st.subheader('Internal Links')
         internal_links = get_internal_links(soup, domain)
         st.write(f"**Total Internal Links:** {len(internal_links)}")
-        for link in internal_links:
-            st.write(link)
+        internal_links
 
         # Create a DataFrame for internal links and add download button
         df_internal_links = pd.DataFrame(internal_links, columns=['Internal Links'])
@@ -124,7 +123,7 @@ if st.button('Analyze') and api_key:
         # Body Text
         st.subheader('Body Text')
         body_text = get_body_text(soup)
-        st.write(f"**First 500 characters of body text:** {body_text}")
+        st.write(f"{body_text}")
 
         # PageSpeed Insights
         st.subheader('PageSpeed Insights')
