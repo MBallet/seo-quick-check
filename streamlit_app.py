@@ -55,10 +55,17 @@ def color_code_performance_score(score):
     else:
         return 'red'
 
+# Function to color code the PageSpeed metrics
+def color_code_metric(value, desirable_range):
+    if value <= desirable_range:
+        return 'green'
+    else:
+        return 'red'
+
 # Streamlit app layout
 st.title('URL Analyzer')
 
-api_key = st.secrets["PAGESPEED_API_KEY"]
+api_key = st.text_input('Enter your Google PageSpeed API Key:')
 url = st.text_input('Enter URL:', 'https://www.example.com')
 
 if st.button('Analyze') and api_key:
@@ -139,15 +146,47 @@ if st.button('Analyze') and api_key:
 
             # Display additional PageSpeed metrics
             audits = lighthouse_result.get('audits', {})
-            first_contentful_paint = audits.get('first-contentful-paint', {}).get('displayValue', 'N/A')
-            speed_index = audits.get('speed-index', {}).get('displayValue', 'N/A')
-            largest_contentful_paint = audits.get('largest-contentful-paint', {}).get('displayValue', 'N/A')
-            time_to_interactive = audits.get('interactive', {}).get('displayValue', 'N/A')
+            first_contentful_paint = audits.get('first-contentful-paint', {}).get('displayValue', 'N/A').replace('s', '')
+            speed_index = audits.get('speed-index', {}).get('displayValue', 'N/A').replace('s', '')
+            largest_contentful_paint = audits.get('largest-contentful-paint', {}).get('displayValue', 'N/A').replace('s', '')
+            time_to_interactive = audits.get('interactive', {}).get('displayValue', 'N/A').replace('s', '')
 
-            st.metric(label="First Contentful Paint", value=first_contentful_paint)
-            st.metric(label="Speed Index", value=speed_index)
-            st.metric(label="Largest Contentful Paint", value=largest_contentful_paint)
-            st.metric(label="Time to Interactive", value=time_to_interactive)
+            # Ensure the metrics are floats
+            first_contentful_paint = float(first_contentful_paint) if first_contentful_paint != 'N/A' else 'N/A'
+            speed_index = float(speed_index) if speed_index != 'N/A' else 'N/A'
+            largest_contentful_paint = float(largest_contentful_paint) if largest_contentful_paint != 'N/A' else 'N/A'
+            time_to_interactive = float(time_to_interactive) if time_to_interactive != 'N/A' else 'N/A'
+
+            # Define desirable ranges
+            desirable_ranges = {
+                "First Contentful Paint": 1.8,
+                "Speed Index": 3.4,
+                "Largest Contentful Paint": 2.5,
+                "Time to Interactive": 3.8
+            }
+
+            # Display metrics with color coding
+            fcp_color = color_code_metric(first_contentful_paint, desirable_ranges["First Contentful Paint"])
+            si_color = color_code_metric(speed_index, desirable_ranges["Speed Index"])
+            lcp_color = color_code_metric(largest_contentful_paint, desirable_ranges["Largest Contentful Paint"])
+            tti_color = color_code_metric(time_to_interactive, desirable_ranges["Time to Interactive"])
+
+            st.markdown(
+                f'<div style="color:{fcp_color}">First Contentful Paint: {first_contentful_paint} seconds</div>',
+                unsafe_allow_html=True
+            )
+            st.markdown(
+                f'<div style="color:{si_color}">Speed Index: {speed_index} seconds</div>',
+                unsafe_allow_html=True
+            )
+            st.markdown(
+                f'<div style="color:{lcp_color}">Largest Contentful Paint: {largest_contentful_paint} seconds</div>',
+                unsafe_allow_html=True
+            )
+            st.markdown(
+                f'<div style="color:{tti_color}">Time to Interactive: {time_to_interactive} seconds</div>',
+                unsafe_allow_html=True
+            )
 
         except Exception as e:
             st.error(f"Error fetching PageSpeed Insights metrics: {e}")
