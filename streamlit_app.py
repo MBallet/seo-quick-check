@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup
 import requests
 import pandas as pd
 from googleapiclient.discovery import build
+import plotly.graph_objects as go
 
 # Function to fetch and parse URL content
 def fetch_url(url):
@@ -46,22 +47,6 @@ def get_pagespeed_metrics(url, api_key):
     response = request.execute()
     return response
 
-# Function to color code the performance score
-def color_code_performance_score(score):
-    if score >= 90:
-        return 'green'
-    elif score >= 50:
-        return 'orange'
-    else:
-        return 'red'
-
-# Function to color code the PageSpeed metrics
-def color_code_metric(value, desirable_range):
-    if value <= desirable_range:
-        return 'green'
-    else:
-        return 'red'
-
 # Streamlit app layout
 st.title('URL Analyzer')
 
@@ -90,6 +75,8 @@ if st.button('Analyze') and api_key:
         # Create a DataFrame for heading structure
         heading_data = [(tag, text) for tag, texts in headings.items() for text in texts]
         df_headings = pd.DataFrame(heading_data, columns=['Heading Tag', 'Text'])
+        st.dataframe(df_headings)  # Display DataFrame
+        
         csv_headings = df_headings.to_csv(index=False)
         st.download_button(
             label="Download Heading Structure as CSV",
@@ -98,20 +85,15 @@ if st.button('Analyze') and api_key:
             mime='text/csv',
         )
 
-        # Display heading structure in expandable format
-        for tag, texts in headings.items():
-            with st.expander(tag):
-                for text in texts:
-                    st.write(text)
-        
         # Internal Links
         st.subheader('Internal Links')
         internal_links = get_internal_links(soup, domain)
         st.write(f"**Total Internal Links:** {len(internal_links)}")
-        st.dataframe(internal_links)
-
-        # Create a DataFrame for internal links and add download button
+        
+        # Create a DataFrame for internal links and display it
         df_internal_links = pd.DataFrame(internal_links, columns=['Internal Links'])
+        st.dataframe(df_internal_links)  # Display DataFrame
+        
         csv_internal_links = df_internal_links.to_csv(index=False)
         st.download_button(
             label="Download Internal Links as CSV",
@@ -136,12 +118,21 @@ if st.button('Analyze') and api_key:
             # Ensure performance_score is an integer
             performance_score = int(performance_score)
 
-            # Color code for the performance score
-            score_color = color_code_performance_score(performance_score)
-            st.markdown(
-                f'<div style="text-align:center; font-size:50px; color:{score_color}">{performance_score}</div>',
-                unsafe_allow_html=True
-            )
+            # Display performance score as a gauge
+            fig = go.Figure(go.Indicator(
+                mode="gauge+number",
+                value=performance_score,
+                title={'text': "Performance Score"},
+                gauge={
+                    'axis': {'range': [0, 100]},
+                    'bar': {'color': "darkblue"},
+                    'steps': [
+                        {'range': [0, 50], 'color': "red"},
+                        {'range': [50, 90], 'color': "orange"},
+                        {'range': [90, 100], 'color': "green"}],
+                }
+            ))
+            st.plotly_chart(fig)
 
             # Display additional PageSpeed metrics
             audits = lighthouse_result.get('audits', {})
@@ -164,28 +155,44 @@ if st.button('Analyze') and api_key:
                 "Time to Interactive": 3.8
             }
 
-            # Display metrics with color coding
-            fcp_color = color_code_metric(first_contentful_paint, desirable_ranges["First Contentful Paint"])
-            si_color = color_code_metric(speed_index, desirable_ranges["Speed Index"])
-            lcp_color = color_code_metric(largest_contentful_paint, desirable_ranges["Largest Contentful Paint"])
-            tti_color = color_code_metric(time_to_interactive, desirable_ranges["Time to Interactive"])
+            # Function to color code the metrics
+            def color_code_metric(value, desirable_range):
+                if value <= desirable_range:
+                    return 'green'
+                else:
+                    return 'red'
 
-            st.markdown(
-                f'<div style="color:{fcp_color}">First Contentful Paint: {first_contentful_paint} seconds</div>',
-                unsafe_allow_html=True
-            )
-            st.markdown(
-                f'<div style="color:{si_color}">Speed Index: {speed_index} seconds</div>',
-                unsafe_allow_html=True
-            )
-            st.markdown(
-                f'<div style="color:{lcp_color}">Largest Contentful Paint: {largest_contentful_paint} seconds</div>',
-                unsafe_allow_html=True
-            )
-            st.markdown(
-                f'<div style="color:{tti_color}">Time to Interactive: {time_to_interactive} seconds</div>',
-                unsafe_allow_html=True
-            )
+            # Display metrics in columns with descriptions and color coding
+            col1, col2 = st.columns(2)
+            with col1:
+                fcp_color = color_code_metric(first_contentful_paint, desirable_ranges["First Contentful Paint"])
+                st.markdown(
+                    f'<div style="color:{fcp_color}">First Contentful Paint: {first_contentful_paint} seconds</div>',
+                    unsafe_allow_html=True
+                )
+                st.write("**First Contentful Paint (FCP)**: Measures the time from when the page starts loading to when any part of the page's content is rendered on the screen.")
+                
+                lcp_color = color_code_metric(largest_contentful_paint, desirable_ranges["Largest Contentful Paint"])
+                st.markdown(
+                    f'<div style="color:{lcp_color}">Largest Contentful Paint: {largest_contentful_paint} seconds</div>',
+                    unsafe_allow_html=True
+                )
+                st.write("**Largest Contentful Paint (LCP)**: Measures the time from when the page starts loading to when the largest text block or image is rendered on the screen.")
+                
+            with col2:
+                si_color = color_code_metric(speed_index, desirable_ranges["Speed Index"])
+                st.markdown(
+                    f'<div style="color:{si_color}">Speed Index: {speed_index} seconds</div>',
+                    unsafe_allow_html=True
+                )
+                st.write("**Speed Index (SI)**: Measures how quickly the content of a page is visually displayed during load.")
+                
+                tti_color = color_code_metric(time_to_interactive, desirable_ranges["Time to Interactive"])
+                st.markdown(
+                    f'<div style="color:{tti_color}">Time to Interactive: {time_to_interactive} seconds</div>',
+                    unsafe_allow_html=True
+                )
+                st.write("**Time to Interactive (TTI)**: Measures the time it takes for the page to become fully interactive.")
 
         except Exception as e:
             st.error(f"Error fetching PageSpeed Insights metrics: {e}")
