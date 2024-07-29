@@ -1,5 +1,5 @@
 import streamlit as st
-from beautifulsoup4 import BeautifulSoup
+from bs4 import BeautifulSoup
 import requests
 
 # Function to fetch and parse URL content
