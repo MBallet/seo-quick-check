@@ -125,7 +125,7 @@ if st.button('Analyze') and api_key:
                 title={'text': "Performance Score"},
                 gauge={
                     'axis': {'range': [0, 100]},
-                    'bar': {'color': "darkblue"},
+                    'bar': {'color': "black"},
                     'steps': [
                         {'range': [0, 50], 'color': "red"},
                         {'range': [50, 90], 'color': "orange"},
@@ -133,6 +133,7 @@ if st.button('Analyze') and api_key:
                 }
             ))
             st.plotly_chart(fig)
+            st.write("The Performance Score is a weighted average score that ranges from 0 to 100. It is calculated based on a set of key performance metrics that assess the speed and responsiveness of a webpage. The score is a part of the Google Lighthouse audit, which evaluates the overall performance of a webpage from the perspective of user experience.)
 
             # Display additional PageSpeed metrics
             audits = lighthouse_result.get('audits', {})
