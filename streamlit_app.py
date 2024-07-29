@@ -2,6 +2,7 @@ import streamlit as st
 from bs4 import BeautifulSoup
 import requests
 import pandas as pd
+from googleapiclient.discovery import build
 
 # Function to fetch and parse URL content
 def fetch_url(url):
@@ -38,12 +39,20 @@ def get_body_text(soup):
     body_text = ' '.join([p.get_text() for p in paragraphs])
     return body_text[:500]
 
+# Function to get PageSpeed Insights metrics
+def get_pagespeed_metrics(url, api_key):
+    service = build('pagespeedonline', 'v5', developerKey=api_key)
+    request = service.pagespeedapi().runpagespeed(url=url)
+    response = request.execute()
+    return response
+
 # Streamlit app layout
 st.title('URL Analyzer')
 
-url = st.text_input('Enter URL:', 'https://www.edelmandxi.com/')
+api_key = st.text_input('Enter your Google PageSpeed API Key:')
+url = st.text_input('Enter URL:', 'https://www.example.com')
 
-if st.button('Analyze'):
+if st.button('Analyze') and api_key:
     soup = fetch_url(url)
     domain = url.split('//')[-1].split('/')[0]
     
@@ -99,6 +108,30 @@ if st.button('Analyze'):
     st.subheader('Body Text')
     body_text = get_body_text(soup)
     st.write(f"**First 500 characters of body text:** {body_text}")
+
+    # PageSpeed Insights
+    st.subheader('PageSpeed Insights')
+    try:
+        pagespeed_metrics = get_pagespeed_metrics(url, api_key)
+        lighthouse_result = pagespeed_metrics.get('lighthouseResult', {})
+        categories = lighthouse_result.get('categories', {})
+        performance_score = categories.get('performance', {}).get('score', 'N/A') * 100
+        st.write(f"**Performance Score:** {performance_score}")
+
+        # Display additional PageSpeed metrics if needed
+        audits = lighthouse_result.get('audits', {})
+        first_contentful_paint = audits.get('first-contentful-paint', {}).get('displayValue', 'N/A')
+        speed_index = audits.get('speed-index', {}).get('displayValue', 'N/A')
+        largest_contentful_paint = audits.get('largest-contentful-paint', {}).get('displayValue', 'N/A')
+        time_to_interactive = audits.get('interactive', {}).get('displayValue', 'N/A')
+
+        st.write(f"**First Contentful Paint:** {first_contentful_paint}")
+        st.write(f"**Speed Index:** {speed_index}")
+        st.write(f"**Largest Contentful Paint:** {largest_contentful_paint}")
+        st.write(f"**Time to Interactive:** {time_to_interactive}")
+
+    except Exception as e:
+        st.error(f"Error fetching PageSpeed Insights metrics: {e}")
 
 # To run the app, save this code to a file (e.g., app.py) and run it using the command:
 # streamlit run app.py
