@@ -3,6 +3,12 @@ from bs4 import BeautifulSoup
 import requests
 import pandas as pd
 from googleapiclient.discovery import build
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
+from webdriver_manager.chrome import ChromeDriverManager
+from PIL import Image
+import io
 
 # Function to fetch and parse URL content
 def fetch_url(url):
@@ -45,6 +51,19 @@ def get_pagespeed_metrics(url, api_key):
     request = service.pagespeedapi().runpagespeed(url=url)
     response = request.execute()
     return response
+
+# Function to capture screenshot
+def capture_screenshot(url):
+    chrome_options = Options()
+    chrome_options.add_argument("--headless")
+    chrome_options.add_argument("--disable-gpu")
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--window-size=1920,1080")
+    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+    driver.get(url)
+    screenshot = driver.get_screenshot_as_png()
+    driver.quit()
+    return Image.open(io.BytesIO(screenshot))
 
 # Streamlit app layout
 st.title('URL Analyzer')
@@ -132,6 +151,14 @@ if st.button('Analyze') and api_key:
 
     except Exception as e:
         st.error(f"Error fetching PageSpeed Insights metrics: {e}")
+
+    # Screenshot
+    st.subheader('Website Screenshot')
+    try:
+        screenshot = capture_screenshot(url)
+        st.image(screenshot, caption='Website Screenshot', use_column_width=True)
+    except Exception as e:
+        st.error(f"Error capturing screenshot: {e}")
 
 # To run the app, save this code to a file (e.g., app.py) and run it using the command:
 # streamlit run app.py
