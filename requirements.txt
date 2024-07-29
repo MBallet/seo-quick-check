@@ -1,5 +1,5 @@
 streamlit
 beautifulsoup4
 google-api-python-client
-requesta
+requests
 pandas
