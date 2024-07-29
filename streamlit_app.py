@@ -58,7 +58,7 @@ def color_code_performance_score(score):
 # Streamlit app layout
 st.title('URL Analyzer')
 
-api_key = st.text_input('Enter your Google PageSpeed API Key:')
+api_key = st.secrets["PAGESPEED_API_KEY"]
 url = st.text_input('Enter URL:', 'https://www.example.com')
 
 if st.button('Analyze') and api_key:
