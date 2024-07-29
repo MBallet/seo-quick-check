@@ -108,7 +108,7 @@ if st.button('Analyze') and api_key:
         st.subheader('Internal Links')
         internal_links = get_internal_links(soup, domain)
         st.write(f"**Total Internal Links:** {len(internal_links)}")
-        internal_links
+        st.dataframe(internal_links)
 
         # Create a DataFrame for internal links and add download button
         df_internal_links = pd.DataFrame(internal_links, columns=['Internal Links'])
