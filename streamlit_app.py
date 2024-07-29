@@ -32,10 +32,16 @@ def get_internal_links(soup, domain):
             internal_links.append(href)
     return internal_links
 
+# Function to extract body text
+def get_body_text(soup):
+    paragraphs = soup.find_all('p')
+    body_text = ' '.join([p.get_text() for p in paragraphs])
+    return body_text[:500]
+
 # Streamlit app layout
 st.title('URL Analyzer')
 
-url = st.text_input('Enter URL:', 'https://www.example.com')
+url = st.text_input('Enter URL:', 'https://www.edelmandxi.com/')
 
 if st.button('Analyze'):
     soup = fetch_url(url)
@@ -54,12 +60,8 @@ if st.button('Analyze'):
     # Heading Structure
     st.subheader('Heading Structure')
     headings = get_heading_structure(soup)
-    for tag, texts in headings.items():
-        with st.expander(tag):
-            for text in texts:
-                st.write(text)
     
-    # Create a DataFrame and download button for heading structure
+    # Create a DataFrame for heading structure
     heading_data = [(tag, text) for tag, texts in headings.items() for text in texts]
     df_headings = pd.DataFrame(heading_data, columns=['Heading Tag', 'Text'])
     csv_headings = df_headings.to_csv(index=False)
@@ -70,6 +72,12 @@ if st.button('Analyze'):
         mime='text/csv',
     )
 
+    # Display heading structure in expandable format
+    for tag, texts in headings.items():
+        with st.expander(tag):
+            for text in texts:
+                st.write(text)
+    
     # Internal Links
     st.subheader('Internal Links')
     internal_links = get_internal_links(soup, domain)
@@ -77,7 +85,7 @@ if st.button('Analyze'):
     for link in internal_links:
         st.write(link)
 
-    # Create a DataFrame and download button for internal links
+    # Create a DataFrame for internal links and add download button
     df_internal_links = pd.DataFrame(internal_links, columns=['Internal Links'])
     csv_internal_links = df_internal_links.to_csv(index=False)
     st.download_button(
@@ -86,6 +94,11 @@ if st.button('Analyze'):
         file_name='internal_links.csv',
         mime='text/csv',
     )
+
+    # Body Text
+    st.subheader('Body Text')
+    body_text = get_body_text(soup)
+    st.write(f"**First 500 characters of body text:** {body_text}")
 
 # To run the app, save this code to a file (e.g., app.py) and run it using the command:
 # streamlit run app.py
