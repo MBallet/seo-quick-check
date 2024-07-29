@@ -62,91 +62,95 @@ api_key = st.text_input('Enter your Google PageSpeed API Key:')
 url = st.text_input('Enter URL:', 'https://www.example.com')
 
 if st.button('Analyze') and api_key:
-    soup = fetch_url(url)
-    domain = url.split('//')[-1].split('/')[0]
-    
-    # Meta Data
-    st.subheader('Meta Data')
-    meta_title, meta_description = get_meta_data(soup)
-    st.write(f"**Title:** {meta_title} ({len(meta_title)} characters)")
-    st.write(f"**Description:** {meta_description} ({len(meta_description)} characters)")
-    
-    # Make meta title and description easily copyable
-    st.text_area("Meta Title", value=meta_title, height=50)
-    st.text_area("Meta Description", value=meta_description, height=100)
+    with st.spinner('Loading data...'):
+        soup = fetch_url(url)
+        domain = url.split('//')[-1].split('/')[0]
+        
+        # Meta Data
+        st.subheader('Meta Data')
+        meta_title, meta_description = get_meta_data(soup)
+        st.write(f"**Title:** {meta_title} ({len(meta_title)} characters)")
+        st.write(f"**Description:** {meta_description} ({len(meta_description)} characters)")
+        
+        # Make meta title and description easily copyable
+        st.text_area("Meta Title", value=meta_title, height=50)
+        st.text_area("Meta Description", value=meta_description, height=100)
 
-    # Heading Structure
-    st.subheader('Heading Structure')
-    headings = get_heading_structure(soup)
-    
-    # Create a DataFrame for heading structure
-    heading_data = [(tag, text) for tag, texts in headings.items() for text in texts]
-    df_headings = pd.DataFrame(heading_data, columns=['Heading Tag', 'Text'])
-    csv_headings = df_headings.to_csv(index=False)
-    st.download_button(
-        label="Download Heading Structure as CSV",
-        data=csv_headings,
-        file_name='heading_structure.csv',
-        mime='text/csv',
-    )
-
-    # Display heading structure in expandable format
-    for tag, texts in headings.items():
-        with st.expander(tag):
-            for text in texts:
-                st.write(text)
-    
-    # Internal Links
-    st.subheader('Internal Links')
-    internal_links = get_internal_links(soup, domain)
-    st.write(f"**Total Internal Links:** {len(internal_links)}")
-    for link in internal_links:
-        st.write(link)
-
-    # Create a DataFrame for internal links and add download button
-    df_internal_links = pd.DataFrame(internal_links, columns=['Internal Links'])
-    csv_internal_links = df_internal_links.to_csv(index=False)
-    st.download_button(
-        label="Download Internal Links as CSV",
-        data=csv_internal_links,
-        file_name='internal_links.csv',
-        mime='text/csv',
-    )
-
-    # Body Text
-    st.subheader('Body Text')
-    body_text = get_body_text(soup)
-    st.write(f"**First 500 characters of body text:** {body_text}")
-
-    # PageSpeed Insights
-    st.subheader('PageSpeed Insights')
-    try:
-        pagespeed_metrics = get_pagespeed_metrics(url, api_key)
-        lighthouse_result = pagespeed_metrics.get('lighthouseResult', {})
-        categories = lighthouse_result.get('categories', {})
-        performance_score = categories.get('performance', {}).get('score', 'N/A') * 100
-
-        # Color code for the performance score
-        score_color = color_code_performance_score(performance_score)
-        st.markdown(
-            f'<div style="text-align:center; font-size:50px; color:{score_color}">{performance_score}</div>',
-            unsafe_allow_html=True
+        # Heading Structure
+        st.subheader('Heading Structure')
+        headings = get_heading_structure(soup)
+        
+        # Create a DataFrame for heading structure
+        heading_data = [(tag, text) for tag, texts in headings.items() for text in texts]
+        df_headings = pd.DataFrame(heading_data, columns=['Heading Tag', 'Text'])
+        csv_headings = df_headings.to_csv(index=False)
+        st.download_button(
+            label="Download Heading Structure as CSV",
+            data=csv_headings,
+            file_name='heading_structure.csv',
+            mime='text/csv',
         )
 
-        # Display additional PageSpeed metrics
-        audits = lighthouse_result.get('audits', {})
-        first_contentful_paint = audits.get('first-contentful-paint', {}).get('displayValue', 'N/A')
-        speed_index = audits.get('speed-index', {}).get('displayValue', 'N/A')
-        largest_contentful_paint = audits.get('largest-contentful-paint', {}).get('displayValue', 'N/A')
-        time_to_interactive = audits.get('interactive', {}).get('displayValue', 'N/A')
+        # Display heading structure in expandable format
+        for tag, texts in headings.items():
+            with st.expander(tag):
+                for text in texts:
+                    st.write(text)
+        
+        # Internal Links
+        st.subheader('Internal Links')
+        internal_links = get_internal_links(soup, domain)
+        st.write(f"**Total Internal Links:** {len(internal_links)}")
+        for link in internal_links:
+            st.write(link)
 
-        st.metric(label="First Contentful Paint", value=first_contentful_paint)
-        st.metric(label="Speed Index", value=speed_index)
-        st.metric(label="Largest Contentful Paint", value=largest_contentful_paint)
-        st.metric(label="Time to Interactive", value=time_to_interactive)
+        # Create a DataFrame for internal links and add download button
+        df_internal_links = pd.DataFrame(internal_links, columns=['Internal Links'])
+        csv_internal_links = df_internal_links.to_csv(index=False)
+        st.download_button(
+            label="Download Internal Links as CSV",
+            data=csv_internal_links,
+            file_name='internal_links.csv',
+            mime='text/csv',
+        )
 
-    except Exception as e:
-        st.error(f"Error fetching PageSpeed Insights metrics: {e}")
+        # Body Text
+        st.subheader('Body Text')
+        body_text = get_body_text(soup)
+        st.write(f"**First 500 characters of body text:** {body_text}")
+
+        # PageSpeed Insights
+        st.subheader('PageSpeed Insights')
+        try:
+            pagespeed_metrics = get_pagespeed_metrics(url, api_key)
+            lighthouse_result = pagespeed_metrics.get('lighthouseResult', {})
+            categories = lighthouse_result.get('categories', {})
+            performance_score = categories.get('performance', {}).get('score', 'N/A') * 100
+
+            # Ensure performance_score is an integer
+            performance_score = int(performance_score)
+
+            # Color code for the performance score
+            score_color = color_code_performance_score(performance_score)
+            st.markdown(
+                f'<div style="text-align:center; font-size:50px; color:{score_color}">{performance_score}</div>',
+                unsafe_allow_html=True
+            )
+
+            # Display additional PageSpeed metrics
+            audits = lighthouse_result.get('audits', {})
+            first_contentful_paint = audits.get('first-contentful-paint', {}).get('displayValue', 'N/A')
+            speed_index = audits.get('speed-index', {}).get('displayValue', 'N/A')
+            largest_contentful_paint = audits.get('largest-contentful-paint', {}).get('displayValue', 'N/A')
+            time_to_interactive = audits.get('interactive', {}).get('displayValue', 'N/A')
+
+            st.metric(label="First Contentful Paint", value=first_contentful_paint)
+            st.metric(label="Speed Index", value=speed_index)
+            st.metric(label="Largest Contentful Paint", value=largest_contentful_paint)
+            st.metric(label="Time to Interactive", value=time_to_interactive)
+
+        except Exception as e:
+            st.error(f"Error fetching PageSpeed Insights metrics: {e}")
 
 # To run the app, save this code to a file (e.g., app.py) and run it using the command:
 # streamlit run app.py
