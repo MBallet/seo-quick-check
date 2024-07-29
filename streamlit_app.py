@@ -46,6 +46,15 @@ def get_pagespeed_metrics(url, api_key):
     response = request.execute()
     return response
 
+# Function to color code the performance score
+def color_code_performance_score(score):
+    if score >= 90:
+        return 'green'
+    elif score >= 50:
+        return 'orange'
+    else:
+        return 'red'
+
 # Streamlit app layout
 st.title('URL Analyzer')
 
@@ -116,19 +125,25 @@ if st.button('Analyze') and api_key:
         lighthouse_result = pagespeed_metrics.get('lighthouseResult', {})
         categories = lighthouse_result.get('categories', {})
         performance_score = categories.get('performance', {}).get('score', 'N/A') * 100
-        st.write(f"**Performance Score:** {performance_score}")
 
-        # Display additional PageSpeed metrics if needed
+        # Color code for the performance score
+        score_color = color_code_performance_score(performance_score)
+        st.markdown(
+            f'<div style="text-align:center; font-size:50px; color:{score_color}">{performance_score}</div>',
+            unsafe_allow_html=True
+        )
+
+        # Display additional PageSpeed metrics
         audits = lighthouse_result.get('audits', {})
         first_contentful_paint = audits.get('first-contentful-paint', {}).get('displayValue', 'N/A')
         speed_index = audits.get('speed-index', {}).get('displayValue', 'N/A')
         largest_contentful_paint = audits.get('largest-contentful-paint', {}).get('displayValue', 'N/A')
         time_to_interactive = audits.get('interactive', {}).get('displayValue', 'N/A')
 
-        st.write(f"**First Contentful Paint:** {first_contentful_paint}")
-        st.write(f"**Speed Index:** {speed_index}")
-        st.write(f"**Largest Contentful Paint:** {largest_contentful_paint}")
-        st.write(f"**Time to Interactive:** {time_to_interactive}")
+        st.metric(label="First Contentful Paint", value=first_contentful_paint)
+        st.metric(label="Speed Index", value=speed_index)
+        st.metric(label="Largest Contentful Paint", value=largest_contentful_paint)
+        st.metric(label="Time to Interactive", value=time_to_interactive)
 
     except Exception as e:
         st.error(f"Error fetching PageSpeed Insights metrics: {e}")
