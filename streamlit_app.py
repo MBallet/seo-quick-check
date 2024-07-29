@@ -133,6 +133,9 @@ if st.button('Analyze') and api_key:
                 }
             ))
             st.plotly_chart(fig)
+            st.write(f"The Performance Score is a weighted average score that ranges from 0 to 100. It is calculated based on a set of key performance metrics that assess the speed and responsiveness of a webpage. The score is a part of the Google Lighthouse audit, which evaluates the overall performance of a webpage from the perspective of user experience.")
+")
+
             
             # Display additional PageSpeed metrics
             audits = lighthouse_result.get('audits', {})
