@@ -65,7 +65,7 @@ if st.button('Analyze') and api_key:
         st.write(f"**Description:** {meta_description} ({len(meta_description)} characters)")
         
         # Make meta title and description easily copyable
-        st.text_area("Meta Title", value=meta_title, height=50)
+        st.code(meta_title)
         st.text_area("Meta Description", value=meta_description, height=100)
 
         # Heading Structure
