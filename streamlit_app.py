@@ -126,7 +126,7 @@ if st.button('Analyze') and api_key:
                 title={'text': "Performance Score"},
                 gauge={
                     'axis': {'range': [0, 100]},
-                    'bar': {'color': "black"},
+                    'bar': {'color': "white"},
                     'steps': [
                         {'range': [0, 50], 'color': "red"},
                         {'range': [50, 90], 'color': "orange"},
