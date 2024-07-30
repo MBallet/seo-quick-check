@@ -110,6 +110,17 @@ if st.button('Analyze') and api_key:
         st.write(f"{body_text}")
 
         # PageSpeed Insights
+        import streamlit as st
+from bs4 import BeautifulSoup
+import requests
+import pandas as pd
+from googleapiclient.discovery import build
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+
+# ... (previous code remains unchanged)
+
+# PageSpeed Insights
 st.subheader('PageSpeed Insights')
 try:
     pagespeed_metrics = get_pagespeed_metrics(url, api_key)
@@ -121,7 +132,7 @@ try:
     performance_score = int(performance_score)
 
     # Create a subplot with 1 row and 2 columns
-    fig = make_subplots(rows=1, cols=2, specs=[[{'type': 'indicator'}, {'type': 'indicator'}]])
+    fig = make_subplots(rows=1, cols=2, specs=[[{'type': 'indicator'}, {'type': 'xy'}]])
 
     # Add Performance Score gauge
     fig.add_trace(go.Indicator(
@@ -199,6 +210,5 @@ try:
 
 except Exception as e:
     st.error(f"Error fetching PageSpeed Insights metrics: {e}")
-
 # To run the app, save this code to a file (e.g., app.py) and run it using the command:
 # streamlit run app.py
