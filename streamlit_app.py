@@ -49,6 +49,7 @@ def get_pagespeed_metrics(url, api_key):
     return response
 
 # Streamlit app layout
+# Streamlit app layout
 st.image('https://djeholdingscom.cachefly.net/sites/g/files/aatuss516/files/styles/holding_logo_original/public/2024-03/DXI-new-logo.png?itok=xaoiwJJ7', width=200)
 st.title('URL Analyzer')
 
@@ -63,22 +64,17 @@ if st.button('Analyze') and api_key:
         # Meta Data
         st.subheader('Meta Data')
         meta_title, meta_description = get_meta_data(soup)
-        ## Title
         st.code(meta_title)
         st.write(f"{len(meta_title)} characters")
-        ## Description
         st.code(meta_description)
         st.write(f"{len(meta_description)} characters")
 
         # Heading Structure
         st.subheader('Heading Structure')
         headings = get_heading_structure(soup)
-        
-        # Create a DataFrame for heading structure
         heading_data = [(tag, text) for tag, texts in headings.items() for text in texts]
         df_headings = pd.DataFrame(heading_data, columns=['Heading Tag', 'Text'])
-        st.dataframe(df_headings)  # Display DataFrame
-        
+        st.dataframe(df_headings)
         csv_headings = df_headings.to_csv(index=False)
         st.download_button(
             label="Download Heading Structure as CSV",
@@ -91,11 +87,8 @@ if st.button('Analyze') and api_key:
         st.subheader('Internal Links')
         internal_links = get_internal_links(soup, domain)
         st.write(f"**Total Internal Links:** {len(internal_links)}")
-        
-        # Create a DataFrame for internal links and display it
         df_internal_links = pd.DataFrame(internal_links, columns=['Internal Links'])
-        st.dataframe(df_internal_links)  # Display DataFrame
-        
+        st.dataframe(df_internal_links)
         csv_internal_links = df_internal_links.to_csv(index=False)
         st.download_button(
             label="Download Internal Links as CSV",
@@ -110,105 +103,92 @@ if st.button('Analyze') and api_key:
         st.write(f"{body_text}")
 
         # PageSpeed Insights
-        import streamlit as st
-from bs4 import BeautifulSoup
-import requests
-import pandas as pd
-from googleapiclient.discovery import build
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
+        st.subheader('PageSpeed Insights')
+        try:
+            pagespeed_metrics = get_pagespeed_metrics(url, api_key)
+            lighthouse_result = pagespeed_metrics.get('lighthouseResult', {})
+            categories = lighthouse_result.get('categories', {})
+            performance_score = categories.get('performance', {}).get('score', 'N/A') * 100
 
-# ... (previous code remains unchanged)
+            # Ensure performance_score is an integer
+            performance_score = int(performance_score)
 
-# PageSpeed Insights
-st.subheader('PageSpeed Insights')
-try:
-    pagespeed_metrics = get_pagespeed_metrics(url, api_key)
-    lighthouse_result = pagespeed_metrics.get('lighthouseResult', {})
-    categories = lighthouse_result.get('categories', {})
-    performance_score = categories.get('performance', {}).get('score', 'N/A') * 100
+            # Create a subplot with 1 row and 2 columns
+            fig = make_subplots(rows=1, cols=2, specs=[[{'type': 'indicator'}, {'type': 'xy'}]])
 
-    # Ensure performance_score is an integer
-    performance_score = int(performance_score)
+            # Add Performance Score gauge
+            fig.add_trace(go.Indicator(
+                mode="gauge+number",
+                value=performance_score,
+                title={'text': "Performance Score"},
+                gauge={
+                    'axis': {'range': [0, 100], 'tickwidth': 1, 'tickcolor': "darkblue"},
+                    'bar': {'color': "royalblue"},
+                    'bgcolor': "white",
+                    'borderwidth': 2,
+                    'bordercolor': "gray",
+                    'steps': [
+                        {'range': [0, 50], 'color': "red"},
+                        {'range': [50, 90], 'color': "orange"},
+                        {'range': [90, 100], 'color': "green"}],
+                }
+            ), row=1, col=1)
 
-    # Create a subplot with 1 row and 2 columns
-    fig = make_subplots(rows=1, cols=2, specs=[[{'type': 'indicator'}, {'type': 'xy'}]])
+            # Display additional PageSpeed metrics
+            audits = lighthouse_result.get('audits', {})
+            metrics = {
+                "First Contentful Paint": audits.get('first-contentful-paint', {}).get('displayValue', 'N/A').replace('s', ''),
+                "Speed Index": audits.get('speed-index', {}).get('displayValue', 'N/A').replace('s', ''),
+                "Largest Contentful Paint": audits.get('largest-contentful-paint', {}).get('displayValue', 'N/A').replace('s', ''),
+                "Time to Interactive": audits.get('interactive', {}).get('displayValue', 'N/A').replace('s', '')
+            }
 
-    # Add Performance Score gauge
-    fig.add_trace(go.Indicator(
-        mode="gauge+number",
-        value=performance_score,
-        title={'text': "Performance Score"},
-        gauge={
-            'axis': {'range': [0, 100], 'tickwidth': 1, 'tickcolor': "darkblue"},
-            'bar': {'color': "royalblue"},
-            'bgcolor': "white",
-            'borderwidth': 2,
-            'bordercolor': "gray",
-            'steps': [
-                {'range': [0, 50], 'color': "red"},
-                {'range': [50, 90], 'color': "orange"},
-                {'range': [90, 100], 'color': "green"}],
-        }
-    ), row=1, col=1)
+            # Convert metrics to float and handle 'N/A'
+            for key, value in metrics.items():
+                metrics[key] = float(value) if value != 'N/A' else 0
 
-    # Display additional PageSpeed metrics
-    audits = lighthouse_result.get('audits', {})
-    metrics = {
-        "First Contentful Paint": audits.get('first-contentful-paint', {}).get('displayValue', 'N/A').replace('s', ''),
-        "Speed Index": audits.get('speed-index', {}).get('displayValue', 'N/A').replace('s', ''),
-        "Largest Contentful Paint": audits.get('largest-contentful-paint', {}).get('displayValue', 'N/A').replace('s', ''),
-        "Time to Interactive": audits.get('interactive', {}).get('displayValue', 'N/A').replace('s', '')
-    }
+            # Define desirable ranges
+            desirable_ranges = {
+                "First Contentful Paint": 1.8,
+                "Speed Index": 3.4,
+                "Largest Contentful Paint": 2.5,
+                "Time to Interactive": 3.8
+            }
 
-    # Convert metrics to float and handle 'N/A'
-    for key, value in metrics.items():
-        metrics[key] = float(value) if value != 'N/A' else 0
+            # Create a bar chart for the metrics
+            fig.add_trace(go.Bar(
+                x=list(metrics.values()),
+                y=list(metrics.keys()),
+                orientation='h',
+                marker_color=['green' if metrics[key] <= desirable_ranges[key] else 'red' for key in metrics.keys()],
+                text=[f"{value:.2f}s" for value in metrics.values()],
+                textposition='auto',
+            ), row=1, col=2)
 
-    # Define desirable ranges
-    desirable_ranges = {
-        "First Contentful Paint": 1.8,
-        "Speed Index": 3.4,
-        "Largest Contentful Paint": 2.5,
-        "Time to Interactive": 3.8
-    }
+            fig.update_layout(
+                height=500,
+                title_text="PageSpeed Insights Metrics",
+                showlegend=False,
+            )
 
-    # Create a bar chart for the metrics
-    fig.add_trace(go.Bar(
-        x=list(metrics.values()),
-        y=list(metrics.keys()),
-        orientation='h',
-        marker_color=['green' if metrics[key] <= desirable_ranges[key] else 'red' for key in metrics.keys()],
-        text=[f"{value:.2f}s" for value in metrics.values()],
-        textposition='auto',
-    ), row=1, col=2)
+            fig.update_xaxes(title_text="Seconds", row=1, col=2)
+            fig.update_yaxes(title_text="Metrics", row=1, col=2)
 
-    fig.update_layout(
-        height=500,
-        title_text="PageSpeed Insights Metrics",
-        showlegend=False,
-    )
+            st.plotly_chart(fig, use_container_width=True)
 
-    fig.update_xaxes(title_text="Seconds", row=1, col=2)
-    fig.update_yaxes(title_text="Metrics", row=1, col=2)
+            # Display metric descriptions
+            st.subheader("Metric Descriptions")
+            descriptions = {
+                "Performance Score": "A weighted average of key performance metrics, ranging from 0 to 100. It assesses the overall speed and responsiveness of a webpage.",
+                "First Contentful Paint (FCP)": "Measures the time from when the page starts loading to when any part of the page's content is rendered on the screen.",
+                "Speed Index (SI)": "Measures how quickly the content of a page is visually displayed during load.",
+                "Largest Contentful Paint (LCP)": "Measures the time from when the page starts loading to when the largest text block or image is rendered on the screen.",
+                "Time to Interactive (TTI)": "Measures the time it takes for the page to become fully interactive."
+            }
 
-    st.plotly_chart(fig, use_container_width=True)
+            for metric, description in descriptions.items():
+                with st.expander(metric):
+                    st.write(description)
 
-    # Display metric descriptions
-    st.subheader("Metric Descriptions")
-    descriptions = {
-        "Performance Score": "A weighted average of key performance metrics, ranging from 0 to 100. It assesses the overall speed and responsiveness of a webpage.",
-        "First Contentful Paint (FCP)": "Measures the time from when the page starts loading to when any part of the page's content is rendered on the screen.",
-        "Speed Index (SI)": "Measures how quickly the content of a page is visually displayed during load.",
-        "Largest Contentful Paint (LCP)": "Measures the time from when the page starts loading to when the largest text block or image is rendered on the screen.",
-        "Time to Interactive (TTI)": "Measures the time it takes for the page to become fully interactive."
-    }
-
-    for metric, description in descriptions.items():
-        with st.expander(metric):
-            st.write(description)
-
-except Exception as e:
-    st.error(f"Error fetching PageSpeed Insights metrics: {e}")
-# To run the app, save this code to a file (e.g., app.py) and run it using the command:
-# streamlit run app.py
+        except Exception as e:
+            st.error(f"Error fetching PageSpeed Insights metrics: {e}")
