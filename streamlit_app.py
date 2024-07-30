@@ -61,12 +61,12 @@ if st.button('Analyze') and api_key:
         # Meta Data
         st.subheader('Meta Data')
         meta_title, meta_description = get_meta_data(soup)
-        st.write(f"**Title:** {meta_title} ({len(meta_title)} characters)")
-        st.write(f"**Description:** {meta_description} ({len(meta_description)} characters)")
-        
-        # Make meta title and description easily copyable
+        ## Title
         st.code(meta_title)
-        st.text_area("Meta Description", value=meta_description, height=100)
+        st.write(f"{len(meta_title)} characters")
+        ## Description
+        st.code(meta_description)
+        st.write(f"{len(meta_description)} characters")
 
         # Heading Structure
         st.subheader('Heading Structure')
