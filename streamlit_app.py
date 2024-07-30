@@ -4,6 +4,7 @@ import requests
 import pandas as pd
 from googleapiclient.discovery import build
 import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 
 # Function to fetch and parse URL content
 def fetch_url(url):
@@ -109,97 +110,95 @@ if st.button('Analyze') and api_key:
         st.write(f"{body_text}")
 
         # PageSpeed Insights
-        st.subheader('PageSpeed Insights')
-        try:
-            pagespeed_metrics = get_pagespeed_metrics(url, api_key)
-            lighthouse_result = pagespeed_metrics.get('lighthouseResult', {})
-            categories = lighthouse_result.get('categories', {})
-            performance_score = categories.get('performance', {}).get('score', 'N/A') * 100
+st.subheader('PageSpeed Insights')
+try:
+    pagespeed_metrics = get_pagespeed_metrics(url, api_key)
+    lighthouse_result = pagespeed_metrics.get('lighthouseResult', {})
+    categories = lighthouse_result.get('categories', {})
+    performance_score = categories.get('performance', {}).get('score', 'N/A') * 100
 
-            # Ensure performance_score is an integer
-            performance_score = int(performance_score)
+    # Ensure performance_score is an integer
+    performance_score = int(performance_score)
 
-            # Display performance score as a gauge
-            fig = go.Figure(go.Indicator(
-                mode="gauge+number",
-                value=performance_score,
-                title={'text': "Performance Score"},
-                gauge={
-                    'axis': {'range': [0, 100]},
-                    'bar': {'color': "white"},
-                    'steps': [
-                        {'range': [0, 50], 'color': "red"},
-                        {'range': [50, 90], 'color': "orange"},
-                        {'range': [90, 100], 'color': "green"}],
-                }
-            ))
-            st.plotly_chart(fig)
-            score_description = "The Performance Score is a weighted average score that ranges from 0 to 100. It is calculated based on a set of key performance metrics that assess the speed and responsiveness of a webpage. The score is a part of the Google Lighthouse audit, which evaluates the overall performance of a webpage from the perspective of user experience."
-            st.write(score_description)
+    # Create a subplot with 1 row and 2 columns
+    fig = make_subplots(rows=1, cols=2, specs=[[{'type': 'indicator'}, {'type': 'indicator'}]])
 
-            
-            # Display additional PageSpeed metrics
-            audits = lighthouse_result.get('audits', {})
-            first_contentful_paint = audits.get('first-contentful-paint', {}).get('displayValue', 'N/A').replace('s', '')
-            speed_index = audits.get('speed-index', {}).get('displayValue', 'N/A').replace('s', '')
-            largest_contentful_paint = audits.get('largest-contentful-paint', {}).get('displayValue', 'N/A').replace('s', '')
-            time_to_interactive = audits.get('interactive', {}).get('displayValue', 'N/A').replace('s', '')
+    # Add Performance Score gauge
+    fig.add_trace(go.Indicator(
+        mode="gauge+number",
+        value=performance_score,
+        title={'text': "Performance Score"},
+        gauge={
+            'axis': {'range': [0, 100], 'tickwidth': 1, 'tickcolor': "darkblue"},
+            'bar': {'color': "royalblue"},
+            'bgcolor': "white",
+            'borderwidth': 2,
+            'bordercolor': "gray",
+            'steps': [
+                {'range': [0, 50], 'color': "red"},
+                {'range': [50, 90], 'color': "orange"},
+                {'range': [90, 100], 'color': "green"}],
+        }
+    ), row=1, col=1)
 
-            # Ensure the metrics are floats
-            first_contentful_paint = float(first_contentful_paint) if first_contentful_paint != 'N/A' else 'N/A'
-            speed_index = float(speed_index) if speed_index != 'N/A' else 'N/A'
-            largest_contentful_paint = float(largest_contentful_paint) if largest_contentful_paint != 'N/A' else 'N/A'
-            time_to_interactive = float(time_to_interactive) if time_to_interactive != 'N/A' else 'N/A'
+    # Display additional PageSpeed metrics
+    audits = lighthouse_result.get('audits', {})
+    metrics = {
+        "First Contentful Paint": audits.get('first-contentful-paint', {}).get('displayValue', 'N/A').replace('s', ''),
+        "Speed Index": audits.get('speed-index', {}).get('displayValue', 'N/A').replace('s', ''),
+        "Largest Contentful Paint": audits.get('largest-contentful-paint', {}).get('displayValue', 'N/A').replace('s', ''),
+        "Time to Interactive": audits.get('interactive', {}).get('displayValue', 'N/A').replace('s', '')
+    }
 
-            # Define desirable ranges
-            desirable_ranges = {
-                "First Contentful Paint": 1.8,
-                "Speed Index": 3.4,
-                "Largest Contentful Paint": 2.5,
-                "Time to Interactive": 3.8
-            }
+    # Convert metrics to float and handle 'N/A'
+    for key, value in metrics.items():
+        metrics[key] = float(value) if value != 'N/A' else 0
 
-            # Function to color code the metrics
-            def color_code_metric(value, desirable_range):
-                if value <= desirable_range:
-                    return 'green'
-                else:
-                    return 'red'
+    # Define desirable ranges
+    desirable_ranges = {
+        "First Contentful Paint": 1.8,
+        "Speed Index": 3.4,
+        "Largest Contentful Paint": 2.5,
+        "Time to Interactive": 3.8
+    }
 
-            # Display metrics in columns with descriptions and color coding
-            col1, col2 = st.columns(2)
-            with col1:
-                fcp_color = color_code_metric(first_contentful_paint, desirable_ranges["First Contentful Paint"])
-                st.markdown(
-                    f'<div style="color:{fcp_color}">First Contentful Paint: {first_contentful_paint} seconds</div>',
-                    unsafe_allow_html=True
-                )
-                st.write("**First Contentful Paint (FCP)**: Measures the time from when the page starts loading to when any part of the page's content is rendered on the screen.")
-                
-                lcp_color = color_code_metric(largest_contentful_paint, desirable_ranges["Largest Contentful Paint"])
-                st.markdown(
-                    f'<div style="color:{lcp_color}">Largest Contentful Paint: {largest_contentful_paint} seconds</div>',
-                    unsafe_allow_html=True
-                )
-                st.write("**Largest Contentful Paint (LCP)**: Measures the time from when the page starts loading to when the largest text block or image is rendered on the screen.")
-                
-            with col2:
-                si_color = color_code_metric(speed_index, desirable_ranges["Speed Index"])
-                st.markdown(
-                    f'<div style="color:{si_color}">Speed Index: {speed_index} seconds</div>',
-                    unsafe_allow_html=True
-                )
-                st.write("**Speed Index (SI)**: Measures how quickly the content of a page is visually displayed during load.")
-                
-                tti_color = color_code_metric(time_to_interactive, desirable_ranges["Time to Interactive"])
-                st.markdown(
-                    f'<div style="color:{tti_color}">Time to Interactive: {time_to_interactive} seconds</div>',
-                    unsafe_allow_html=True
-                )
-                st.write("**Time to Interactive (TTI)**: Measures the time it takes for the page to become fully interactive.")
+    # Create a bar chart for the metrics
+    fig.add_trace(go.Bar(
+        x=list(metrics.values()),
+        y=list(metrics.keys()),
+        orientation='h',
+        marker_color=['green' if metrics[key] <= desirable_ranges[key] else 'red' for key in metrics.keys()],
+        text=[f"{value:.2f}s" for value in metrics.values()],
+        textposition='auto',
+    ), row=1, col=2)
 
-        except Exception as e:
-            st.error(f"Error fetching PageSpeed Insights metrics: {e}")
+    fig.update_layout(
+        height=500,
+        title_text="PageSpeed Insights Metrics",
+        showlegend=False,
+    )
+
+    fig.update_xaxes(title_text="Seconds", row=1, col=2)
+    fig.update_yaxes(title_text="Metrics", row=1, col=2)
+
+    st.plotly_chart(fig, use_container_width=True)
+
+    # Display metric descriptions
+    st.subheader("Metric Descriptions")
+    descriptions = {
+        "Performance Score": "A weighted average of key performance metrics, ranging from 0 to 100. It assesses the overall speed and responsiveness of a webpage.",
+        "First Contentful Paint (FCP)": "Measures the time from when the page starts loading to when any part of the page's content is rendered on the screen.",
+        "Speed Index (SI)": "Measures how quickly the content of a page is visually displayed during load.",
+        "Largest Contentful Paint (LCP)": "Measures the time from when the page starts loading to when the largest text block or image is rendered on the screen.",
+        "Time to Interactive (TTI)": "Measures the time it takes for the page to become fully interactive."
+    }
+
+    for metric, description in descriptions.items():
+        with st.expander(metric):
+            st.write(description)
+
+except Exception as e:
+    st.error(f"Error fetching PageSpeed Insights metrics: {e}")
 
 # To run the app, save this code to a file (e.g., app.py) and run it using the command:
 # streamlit run app.py
