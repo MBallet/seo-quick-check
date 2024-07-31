@@ -58,7 +58,7 @@ logo_url = "https://djeholdingscom.cachefly.net/sites/g/files/aatuss516/files/st
 # HTML and CSS for the header
 header_html = f"""
 <div style="display: flex; align-items: center; padding: 10px; background-color: #f8f9fa; border-radius: 10px;">
-    <img src="{logo_url}" width="200" height="50" style="margin-right: 20px;">
+    <img src="{logo_url}" style="margin-right: 20px;">
     <h1 style="margin: 0; color: #343a40;">URL Analyzer</h1>
 </div>
 """
