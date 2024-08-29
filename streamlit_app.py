@@ -66,7 +66,7 @@ if st.button('Analyze') and api_key:
         # Meta Data
         st.subheader('Meta Data')
         meta_title, meta_description = get_meta_data(soup)
-        st.subheader('Title')
+        st.subheader('Title', divider=True)
         st.code(meta_title)
         st.write(f"{len(meta_title)} characters")
         st.subheader('Description')
