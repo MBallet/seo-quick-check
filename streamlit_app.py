@@ -59,14 +59,14 @@ api_key = st.secrets["PAGESPEED_API_KEY"]
 url = st.text_input('Enter URL:', 'https://www.example.com')
 
 if st.button('Analyze') and api_key:
-    with st.spinner('Loading data...'):
+    with st.spinner('Collecting page speed metrics...'):
         soup = fetch_url(url)
         domain = url.split('//')[-1].split('/')[0]
         
         # Meta Data
-        st.subheader('Meta Data')
+        st.subheader('Meta Data', divider=True)
         meta_title, meta_description = get_meta_data(soup)
-        st.subheader('Title', divider=True)
+        st.subheader('Title')
         st.code(meta_title)
         st.write(f"{len(meta_title)} characters")
         st.subheader('Description')
