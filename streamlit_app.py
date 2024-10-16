@@ -207,7 +207,10 @@ if st.button('Analyze') and api_key:
     # Body Text
     st.subheader('Body Text')
     body_text = get_body_text(soup)
-    st.write(f"{body_text}")
+    if not body_text:
+        st.error("No body text found on the page.")
+    else:
+        st.write(f"{body_text}")
 
     # PageSpeed Insights
     st.subheader('PageSpeed Insights')
