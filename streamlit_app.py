@@ -31,8 +31,16 @@ def get_internal_links(soup, domain):
     internal_links = []
     for link in soup.find_all('a', href=True):
         href = link['href']
+        if href.startswith('/'):
+            # Convert relative link to absolute link
+            href = f'https://{domain}{href}'
+        elif not href.startswith('http'):
+            # Skip non-http links
+            continue
         if domain in href:
             internal_links.append(href)
+    # Remove duplicates
+    internal_links = list(set(internal_links))
     return internal_links
 
 # Function to extract body text
