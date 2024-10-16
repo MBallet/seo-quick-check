@@ -183,7 +183,10 @@ if st.button('Analyze') and api_key:
     external_links = get_external_links(soup, domain)
     st.session_state['external_links'] = external_links
     total_external_links = sum(link_data['count'] for link_data in external_links.values())
+    total_nofollow_links = sum(1 for link_data in external_links.values() if link_data['nofollow'])
+    total_follow_links = len(external_links) - total_nofollow_links
     st.write(f"**Total External Links:** {total_external_links} (Unique Links: {len(external_links)})")
+    st.write(f"**Total Follow Links:** {total_follow_links}, **Total Nofollow Links:** {total_nofollow_links}")
     external_links_data = [(link, data['count'], 'nofollow' if data['nofollow'] else 'follow') for link, data in external_links.items()]
     df_external_links = pd.DataFrame(external_links_data, columns=['External Links', 'Count', 'Type'])
     st.dataframe(df_external_links)
