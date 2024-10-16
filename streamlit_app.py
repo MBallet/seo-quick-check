@@ -16,7 +16,7 @@ def fetch_url(url):
 def get_meta_data(soup):
     meta_title = soup.title.string if soup.title else 'No title found'
     meta_description = soup.find('meta', attrs={'name': 'description'})
-    meta_description = meta_description['content'] if meta_description else 'No description found'
+    meta_description = meta_description['content'] if meta_description else None
     return meta_title, meta_description
 
 # Function to extract heading structure
@@ -28,12 +28,40 @@ def get_heading_structure(soup):
 
 # Function to extract internal links
 def get_internal_links(soup, domain):
-    internal_links = []
+    internal_links = {}
     for link in soup.find_all('a', href=True):
         href = link['href']
+        if href.startswith('/'):
+            # Convert relative link to absolute link
+            href = f'https://{domain}{href}'
+        elif not href.startswith('http'):
+            # Skip non-http links
+            continue
         if domain in href:
-            internal_links.append(href)
+            anchor_text = link.get_text().strip()
+            if href in internal_links:
+                internal_links[href]['count'] += 1
+            else:
+                internal_links[href] = {'count': 1, 'anchor_text': anchor_text}
     return internal_links
+
+# Function to extract external links
+def get_external_links(soup, domain):
+    external_links = {}
+    for link in soup.find_all('a', href=True):
+        href = link['href']
+        if href.startswith('/') or not href.startswith('http'):
+            # Skip relative links and non-http links
+            continue
+        if domain not in href:
+            rel = link.get('rel', [])
+            nofollow = 'nofollow' in rel
+            anchor_text = link.get_text().strip()
+            if href in external_links:
+                external_links[href]['count'] += 1
+            else:
+                external_links[href] = {'count': 1, 'nofollow': nofollow, 'anchor_text': anchor_text}
+    return external_links
 
 # Function to extract body text
 def get_body_text(soup):
@@ -58,56 +86,135 @@ st.title("URL Analyzer")
 api_key = st.secrets["PAGESPEED_API_KEY"]
 url = st.text_input('Enter URL:', 'https://www.edelmandxi.com/')
 
+if 'soup' not in st.session_state:
+    st.session_state['soup'] = None
+
+if 'headings' not in st.session_state:
+    st.session_state['headings'] = None
+
+if 'internal_links' not in st.session_state:
+    st.session_state['internal_links'] = None
+
+if 'external_links' not in st.session_state:
+    st.session_state['external_links'] = None
+
 if st.button('Analyze') and api_key:
-    with st.spinner('Collecting page speed metrics from Google...'):
-        soup = fetch_url(url)
-        domain = url.split('//')[-1].split('/')[0]
+    soup = fetch_url(url)
+    st.session_state['soup'] = soup
+    domain = url.split('//')[-1].split('/')[0]
+    
+    # Meta Data
+    st.subheader('Meta Data', divider=True)
+    meta_title, meta_description = get_meta_data(soup)
+    st.subheader('Title')
+    st.text_input('Title:', meta_title)
+    title_length = len(meta_title)
+    if title_length > 60:
+        st.warning(f"Title is too long: {title_length} characters (recommended: 55-60 characters)")
+    else:
+        st.success(f"Title length is good: {title_length} characters")
+    
+    st.subheader('Description')
+    if meta_description is None:
+        st.error("No meta description found.")
+    else:
+        st.text_area('Description:', meta_description)
+        description_length = len(meta_description)
         
-        # Meta Data
-        st.subheader('Meta Data', divider=True)
-        meta_title, meta_description = get_meta_data(soup)
-        st.subheader('Title')
-        st.code(meta_title)
-        st.write(f"{len(meta_title)} characters")
-        st.subheader('Description')
-        st.code(meta_description)
-        st.write(f"{len(meta_description)} characters")
+    if meta_description is not None:
+        description_length = len(meta_description)
+        if description_length > 160:
+            st.warning(f"Description is too long: {description_length} characters (recommended: 120-160 characters)")
+        else:
+            st.success(f"Description length is good: {description_length} characters")
 
-        # Heading Structure
-        st.subheader('Heading Structure')
-        headings = get_heading_structure(soup)
-        heading_data = [(tag, text) for tag, texts in headings.items() for text in texts]
-        df_headings = pd.DataFrame(heading_data, columns=['Heading Tag', 'Text'])
-        st.dataframe(df_headings)
-        csv_headings = df_headings.to_csv(index=False)
-        st.download_button(
-            label="Download Heading Structure as CSV",
-            data=csv_headings,
-            file_name='heading_structure.csv',
-            mime='text/csv',
-        )
+    # Heading Structure
+    st.subheader('Heading Structure')
+    headings = get_heading_structure(soup)
+    st.session_state['headings'] = headings
+    heading_data = [(tag, text) for tag, texts in headings.items() for text in texts]
+    df_headings = pd.DataFrame(heading_data, columns=['Heading Tag', 'Text'])
+    st.dataframe(df_headings)
+    csv_headings = df_headings.to_csv(index=False)
+    st.download_button(
+        label="Download Heading Structure as CSV",
+        data=csv_headings,
+        file_name='heading_structure.csv',
+        mime='text/csv',
+    )
 
-        # Internal Links
-        st.subheader('Internal Links')
-        internal_links = get_internal_links(soup, domain)
-        st.write(f"**Total Internal Links:** {len(internal_links)}")
-        df_internal_links = pd.DataFrame(internal_links, columns=['Internal Links'])
-        st.dataframe(df_internal_links)
-        csv_internal_links = df_internal_links.to_csv(index=False)
-        st.download_button(
-            label="Download Internal Links as CSV",
-            data=csv_internal_links,
-            file_name='internal_links.csv',
-            mime='text/csv',
-        )
+    # Heading warnings and success messages
+    if not heading_data:
+        st.warning("No headings found on the page.")
+    else:
+        if len(headings['H1']) == 0:
+            st.error("No H1 found on the page.")
+        elif len(headings['H1']) > 1:
+            st.error("Multiple H1s found on the page.")
+        else:
+            st.success("H1 structure looks good.")
+        
+        if len(headings['H2']) == 0:
+            st.warning("No H2s found on the page.")
+        else:
+            st.success("H2 structure looks good.")
+        
+        if len(headings['H3']) == 0:
+            st.warning("No H3s found on the page.")
+        else:
+            st.success("H3 structure looks good.")
 
-        # Body Text
-        st.subheader('Body Text')
-        body_text = get_body_text(soup)
+    # Internal Links
+    st.subheader('Internal Links')
+    internal_links = get_internal_links(soup, domain)
+    st.session_state['internal_links'] = internal_links
+    if not internal_links:
+        st.error("No internal links found on the page.")
+    else:
+        total_internal_links = sum(data['count'] for data in internal_links.values())
+        st.write(f"**Total Internal Links:** {total_internal_links} (Unique Links: {len(internal_links)})")
+    internal_links_data = [(link, data['count'], data['anchor_text']) for link, data in internal_links.items()]
+    df_internal_links = pd.DataFrame(internal_links_data, columns=['Internal Links', 'Count', 'Anchor Text'])
+    st.dataframe(df_internal_links)
+    csv_internal_links = df_internal_links.to_csv(index=False)
+    st.download_button(
+        label="Download Internal Links as CSV",
+        data=csv_internal_links,
+        file_name='internal_links.csv',
+        mime='text/csv',
+    )
+
+    # External Links
+    st.subheader('External Links')
+    external_links = get_external_links(soup, domain)
+    st.session_state['external_links'] = external_links
+    total_external_links = sum(link_data['count'] for link_data in external_links.values())
+    total_nofollow_links = sum(1 for link_data in external_links.values() if link_data['nofollow'])
+    total_follow_links = len(external_links) - total_nofollow_links
+    st.write(f"**Total External Links:** {total_external_links} (Unique Links: {len(external_links)})")
+    st.write(f"**Total Follow Links:** {total_follow_links}, **Total Nofollow Links:** {total_nofollow_links}")
+    external_links_data = [(link, data['count'], 'nofollow' if data['nofollow'] else 'follow', data['anchor_text']) for link, data in external_links.items()]
+    df_external_links = pd.DataFrame(external_links_data, columns=['External Links', 'Count', 'Type', 'Anchor Text'])
+    st.dataframe(df_external_links)
+    csv_external_links = df_external_links.to_csv(index=False)
+    st.download_button(
+        label="Download External Links as CSV",
+        data=csv_external_links,
+        file_name='external_links.csv',
+        mime='text/csv',
+    )
+
+    # Body Text
+    st.subheader('Body Text')
+    body_text = get_body_text(soup)
+    if not body_text:
+        st.error("No body text found on the page.")
+    else:
         st.write(f"{body_text}")
 
-        # PageSpeed Insights
-        st.subheader('PageSpeed Insights')
+    # PageSpeed Insights
+    st.subheader('PageSpeed Insights')
+    with st.spinner('Collecting page speed metrics from Google...'):
         try:
             pagespeed_metrics = get_pagespeed_metrics(url, api_key)
             lighthouse_result = pagespeed_metrics.get('lighthouseResult', {})
