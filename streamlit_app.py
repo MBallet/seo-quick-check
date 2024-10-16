@@ -77,10 +77,10 @@ if st.button('Analyze') and api_key:
         st.subheader('Meta Data', divider=True)
         meta_title, meta_description = get_meta_data(soup)
         st.subheader('Title')
-        st.code(meta_title)
+        st.text_input('Title:', meta_title)
         st.write(f"{len(meta_title)} characters")
         st.subheader('Description')
-        st.code(meta_description)
+        st.text_area('Description:', meta_description)
         st.write(f"{len(meta_description)} characters")
 
         # Heading Structure
