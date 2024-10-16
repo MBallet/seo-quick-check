@@ -210,7 +210,7 @@ if st.button('Analyze') and api_key:
     if not body_text:
         st.error("No body text found on the page.")
     else:
-        st.markdown(f"{body_text}")
+        st.text(f"{body_text}")
 
     # PageSpeed Insights
     st.subheader('PageSpeed Insights')
