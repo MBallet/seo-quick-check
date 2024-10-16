@@ -147,7 +147,7 @@ if st.button('Analyze') and api_key:
     internal_links = get_internal_links(soup, domain)
     st.session_state['internal_links'] = internal_links
     st.write(f"**Total Internal Links:** {len(internal_links)}")
-    df_internal_links = pd.DataFrame(internal_links, columns=['Internal Links'])
+    df_internal_links = pd.DataFrame(list(internal_links.items()), columns=['Internal Links', 'Count'])
     st.dataframe(df_internal_links)
     csv_internal_links = df_internal_links.to_csv(index=False)
     st.download_button(
