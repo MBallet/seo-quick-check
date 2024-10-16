@@ -149,7 +149,7 @@ if st.button('Analyze') and api_key:
 
     # PageSpeed Insights
     st.subheader('PageSpeed Insights')
-    with st.spinner('Collecting page speed metrics...'):
+    with st.spinner('Fetching page speed metrics from Google...'):
         try:
             pagespeed_metrics = get_pagespeed_metrics(url, api_key)
             lighthouse_result = pagespeed_metrics.get('lighthouseResult', {})
