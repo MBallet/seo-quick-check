@@ -28,7 +28,7 @@ def get_heading_structure(soup):
 
 # Function to extract internal links
 def get_internal_links(soup, domain):
-    internal_links = []
+    internal_links = {}
     for link in soup.find_all('a', href=True):
         href = link['href']
         if href.startswith('/'):
@@ -38,9 +38,10 @@ def get_internal_links(soup, domain):
             # Skip non-http links
             continue
         if domain in href:
-            internal_links.append(href)
-    # Remove duplicates
-    internal_links = list(set(internal_links))
+            if href in internal_links:
+                internal_links[href] += 1
+            else:
+                internal_links[href] = 1
     return internal_links
 
 # Function to extract body text
