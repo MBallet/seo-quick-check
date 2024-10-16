@@ -112,9 +112,9 @@ if st.button('Analyze') and api_key:
             st.warning("No headings found on the page.")
         else:
             if len(headings['H1']) == 0:
-                st.warning("No H1 found on the page.")
+                st.error("No H1 found on the page.")
             elif len(headings['H1']) > 1:
-                st.warning("Multiple H1s found on the page.")
+                st.error("Multiple H1s found on the page.")
             else:
                 st.success("H1 structure looks good.")
             
@@ -125,6 +125,8 @@ if st.button('Analyze') and api_key:
             
             if len(headings['H3']) == 0:
                 st.warning("No H3s found on the page.")
+            else:
+                st.success("H3 structure looks good.")
 
         # Internal Links
         st.subheader('Internal Links')
