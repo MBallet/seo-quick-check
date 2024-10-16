@@ -210,7 +210,7 @@ if st.button('Analyze') and api_key:
     if not body_text:
         st.error("No body text found on the page.")
     else:
-        st.text(f"{body_text}")
+        st.text_area('Body Text:', body_text, height=200)
 
     # PageSpeed Insights
 if st.session_state.get('include_pagespeed_analysis', False):
