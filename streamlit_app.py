@@ -82,7 +82,7 @@ if st.button('Analyze') and api_key:
         if title_length > 60:
             st.warning(f"Title is too long: {title_length} characters (recommended: 55-60 characters)")
         else:
-            st.write(f"{title_length} characters")
+            st.success(f"Title length is good: {title_length} characters")
         
         st.subheader('Description')
         st.text_area('Description:', meta_description)
@@ -90,7 +90,7 @@ if st.button('Analyze') and api_key:
         if description_length > 160:
             st.warning(f"Description is too long: {description_length} characters (recommended: 120-160 characters)")
         else:
-            st.write(f"{description_length} characters")
+            st.success(f"Description length is good: {description_length} characters")
 
         # Heading Structure
         st.subheader('Heading Structure')
