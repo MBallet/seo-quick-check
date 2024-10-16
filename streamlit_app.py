@@ -78,10 +78,19 @@ if st.button('Analyze') and api_key:
         meta_title, meta_description = get_meta_data(soup)
         st.subheader('Title')
         st.text_input('Title:', meta_title)
-        st.write(f"{len(meta_title)} characters")
+        title_length = len(meta_title)
+        if title_length > 60:
+            st.warning(f"Title is too long: {title_length} characters (recommended: 55-60 characters)")
+        else:
+            st.write(f"{title_length} characters")
+        
         st.subheader('Description')
         st.text_area('Description:', meta_description)
-        st.write(f"{len(meta_description)} characters")
+        description_length = len(meta_description)
+        if description_length > 160:
+            st.warning(f"Description is too long: {description_length} characters (recommended: 120-160 characters)")
+        else:
+            st.write(f"{description_length} characters")
 
         # Heading Structure
         st.subheader('Heading Structure')
