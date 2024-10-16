@@ -107,6 +107,25 @@ if st.button('Analyze') and api_key:
             mime='text/csv',
         )
 
+        # Heading warnings and success messages
+        if not heading_data:
+            st.warning("No headings found on the page.")
+        else:
+            if len(headings['H1']) == 0:
+                st.warning("No H1 found on the page.")
+            elif len(headings['H1']) > 1:
+                st.warning("Multiple H1s found on the page.")
+            else:
+                st.success("H1 structure looks good.")
+            
+            if len(headings['H2']) == 0:
+                st.warning("No H2s found on the page.")
+            else:
+                st.success("H2 structure looks good.")
+            
+            if len(headings['H3']) == 0:
+                st.warning("No H3s found on the page.")
+
         # Internal Links
         st.subheader('Internal Links')
         internal_links = get_internal_links(soup, domain)
