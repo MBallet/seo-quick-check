@@ -40,9 +40,9 @@ def get_internal_links(soup, domain):
         if domain in href:
             anchor_text = link.get_text().strip()
             if href in internal_links:
-            internal_links[href]['count'] += 1
+                internal_links[href]['count'] += 1
             else:
-            internal_links[href] = {'count': 1, 'anchor_text': anchor_text}
+                internal_links[href] = {'count': 1, 'anchor_text': anchor_text}
     return internal_links
 
 # Function to extract external links
