@@ -44,6 +44,23 @@ def get_internal_links(soup, domain):
                 internal_links[href] = 1
     return internal_links
 
+# Function to extract external links
+def get_external_links(soup, domain):
+    external_links = {}
+    for link in soup.find_all('a', href=True):
+        href = link['href']
+        if href.startswith('/') or not href.startswith('http'):
+            # Skip relative links and non-http links
+            continue
+        if domain not in href:
+            rel = link.get('rel', [])
+            nofollow = 'nofollow' in rel
+            if href in external_links:
+                external_links[href]['count'] += 1
+            else:
+                external_links[href] = {'count': 1, 'nofollow': nofollow}
+    return external_links
+
 # Function to extract body text
 def get_body_text(soup):
     paragraphs = soup.find_all('p')
@@ -75,6 +92,9 @@ if 'headings' not in st.session_state:
 
 if 'internal_links' not in st.session_state:
     st.session_state['internal_links'] = None
+
+if 'external_links' not in st.session_state:
+    st.session_state['external_links'] = None
 
 if st.button('Analyze') and api_key:
     soup = fetch_url(url)
@@ -155,6 +175,23 @@ if st.button('Analyze') and api_key:
         label="Download Internal Links as CSV",
         data=csv_internal_links,
         file_name='internal_links.csv',
+        mime='text/csv',
+    )
+
+    # External Links
+    st.subheader('External Links')
+    external_links = get_external_links(soup, domain)
+    st.session_state['external_links'] = external_links
+    total_external_links = sum(link_data['count'] for link_data in external_links.values())
+    st.write(f"**Total External Links:** {total_external_links} (Unique Links: {len(external_links)})")
+    external_links_data = [(link, data['count'], 'nofollow' if data['nofollow'] else 'follow') for link, data in external_links.items()]
+    df_external_links = pd.DataFrame(external_links_data, columns=['External Links', 'Count', 'Type'])
+    st.dataframe(df_external_links)
+    csv_external_links = df_external_links.to_csv(index=False)
+    st.download_button(
+        label="Download External Links as CSV",
+        data=csv_external_links,
+        file_name='external_links.csv',
         mime='text/csv',
     )
 
