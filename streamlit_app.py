@@ -16,7 +16,7 @@ def fetch_url(url):
 def get_meta_data(soup):
     meta_title = soup.title.string if soup.title else 'No title found'
     meta_description = soup.find('meta', attrs={'name': 'description'})
-    meta_description = meta_description['content'] if meta_description else 'No description found'
+    meta_description = meta_description['content'] if meta_description else None
     return meta_title, meta_description
 
 # Function to extract heading structure
@@ -84,8 +84,15 @@ if st.button('Analyze') and api_key:
         st.success(f"Title length is good: {title_length} characters")
     
     st.subheader('Description')
-    st.text_area('Description:', meta_description)
-    description_length = len(meta_description)
+    if meta_description is None:
+        st.error("No meta description found.")
+    else:
+        st.text_area('Description:', meta_description)
+        description_length = len(meta_description)
+        if description_length > 160:
+            st.warning(f"Description is too long: {description_length} characters (recommended: 120-160 characters)")
+        else:
+            st.success(f"Description length is good: {description_length} characters")
     if description_length > 160:
         st.warning(f"Description is too long: {description_length} characters (recommended: 120-160 characters)")
     else:
@@ -149,7 +156,7 @@ if st.button('Analyze') and api_key:
 
     # PageSpeed Insights
     st.subheader('PageSpeed Insights')
-    with st.spinner('Fetching page speed metrics from Google...'):
+    with st.spinner('Collecting page speed metrics...'):
         try:
             pagespeed_metrics = get_pagespeed_metrics(url, api_key)
             lighthouse_result = pagespeed_metrics.get('lighthouseResult', {})
