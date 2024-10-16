@@ -38,10 +38,11 @@ def get_internal_links(soup, domain):
             # Skip non-http links
             continue
         if domain in href:
+            anchor_text = link.get_text().strip()
             if href in internal_links:
-                internal_links[href] += 1
+                internal_links[href]['count'] += 1
             else:
-                internal_links[href] = 1
+                internal_links[href] = {'count': 1, 'anchor_text': anchor_text}
     return internal_links
 
 # Function to extract external links
@@ -55,10 +56,11 @@ def get_external_links(soup, domain):
         if domain not in href:
             rel = link.get('rel', [])
             nofollow = 'nofollow' in rel
+            anchor_text = link.get_text().strip()
             if href in external_links:
                 external_links[href]['count'] += 1
             else:
-                external_links[href] = {'count': 1, 'nofollow': nofollow}
+                external_links[href] = {'count': 1, 'nofollow': nofollow, 'anchor_text': anchor_text}
     return external_links
 
 # Function to extract body text
@@ -171,7 +173,8 @@ if st.button('Analyze') and api_key:
     else:
         total_internal_links = sum(internal_links.values())
         st.write(f"**Total Internal Links:** {total_internal_links} (Unique Links: {len(internal_links)})")
-    df_internal_links = pd.DataFrame(list(internal_links.items()), columns=['Internal Links', 'Count'])
+    internal_links_data = [(link, data['count'], data['anchor_text']) for link, data in internal_links.items()]
+df_internal_links = pd.DataFrame(internal_links_data, columns=['Internal Links', 'Count', 'Anchor Text'])
     st.dataframe(df_internal_links)
     csv_internal_links = df_internal_links.to_csv(index=False)
     st.download_button(
@@ -190,8 +193,8 @@ if st.button('Analyze') and api_key:
     total_follow_links = len(external_links) - total_nofollow_links
     st.write(f"**Total External Links:** {total_external_links} (Unique Links: {len(external_links)})")
     st.write(f"**Total Follow Links:** {total_follow_links}, **Total Nofollow Links:** {total_nofollow_links}")
-    external_links_data = [(link, data['count'], 'nofollow' if data['nofollow'] else 'follow') for link, data in external_links.items()]
-    df_external_links = pd.DataFrame(external_links_data, columns=['External Links', 'Count', 'Type'])
+    external_links_data = [(link, data['count'], 'nofollow' if data['nofollow'] else 'follow', data['anchor_text']) for link, data in external_links.items()]
+df_external_links = pd.DataFrame(external_links_data, columns=['External Links', 'Count', 'Type', 'Anchor Text'])
     st.dataframe(df_external_links)
     csv_external_links = df_external_links.to_csv(index=False)
     st.download_button(
