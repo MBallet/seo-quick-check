@@ -68,8 +68,7 @@ if 'internal_links' not in st.session_state:
     st.session_state['internal_links'] = None
 
 if st.button('Analyze') and api_key:
-    with st.spinner('Collecting data, please wait...'):
-        soup = fetch_url(url)
+    
         st.session_state['soup'] = soup
         domain = url.split('//')[-1].split('/')[0]
         
