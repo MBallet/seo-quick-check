@@ -85,6 +85,7 @@ st.title("URL Analyzer")
 
 api_key = st.secrets["PAGESPEED_API_KEY"]
 url = st.text_input('Enter URL:', 'https://www.edelmandxi.com/')
+include_pagespeed = st.checkbox('Include PageSpeed Metrics in Analysis', value=True)
 
 if 'soup' not in st.session_state:
     st.session_state['soup'] = None
@@ -211,6 +212,7 @@ if st.button('Analyze') and api_key:
         st.text(f"{body_text}")
 
     # PageSpeed Insights
+if include_pagespeed:
     st.subheader('PageSpeed Insights')
     with st.spinner('Collecting page speed metrics from Google...'):
         try:
