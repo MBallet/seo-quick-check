@@ -107,7 +107,7 @@ if st.button('Analyze') and api_key:
     st.subheader('Meta Data', divider=True)
     meta_title, meta_description = get_meta_data(soup)
     st.subheader('Meta Title')
-    st.write(meta_title)
+    st.text_area('Current Title:' , meta_title)
     title_length = len(meta_title)
     if title_length > 60:
         st.warning(f"Title is too long: {title_length} characters (recommended: 55-60 characters)")
@@ -210,7 +210,7 @@ if st.button('Analyze') and api_key:
     if not body_text:
         st.error("No body text found on the page.")
     else:
-        st.write(f"{body_text}")
+        st.markdown(f"{body_text}")
 
     # PageSpeed Insights
     st.subheader('PageSpeed Insights')
