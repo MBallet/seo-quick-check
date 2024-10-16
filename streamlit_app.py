@@ -166,8 +166,11 @@ if st.button('Analyze') and api_key:
     st.subheader('Internal Links')
     internal_links = get_internal_links(soup, domain)
     st.session_state['internal_links'] = internal_links
-    total_internal_links = sum(internal_links.values())
-    st.write(f"**Total Internal Links:** {total_internal_links} (Unique Links: {len(internal_links)})")
+    if not internal_links:
+        st.error("No internal links found on the page.")
+    else:
+        total_internal_links = sum(internal_links.values())
+        st.write(f"**Total Internal Links:** {total_internal_links} (Unique Links: {len(internal_links)})")
     df_internal_links = pd.DataFrame(list(internal_links.items()), columns=['Internal Links', 'Count'])
     st.dataframe(df_internal_links)
     csv_internal_links = df_internal_links.to_csv(index=False)
