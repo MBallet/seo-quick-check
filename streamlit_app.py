@@ -153,3 +153,47 @@ if 'pagespeed_metrics' in st.session_state.data:
     ))
     fig.update_layout(height=300, margin=dict(l=10, r=10, t=40, b=10))
     st.plotly_chart(fig, use_container_width=True)
+# Other Metrics Display
+st.subheader("Other PageSpeed Metrics")
+audits = lighthouse_result.get('audits', {})
+metrics = {
+    "First Contentful Paint": audits.get('first-contentful-paint', {}).get('displayValue', 'N/A'),
+    "Speed Index": audits.get('speed-index', {}).get('displayValue', 'N/A'),
+    "Largest Contentful Paint": audits.get('largest-contentful-paint', {}).get('displayValue', 'N/A'),
+    "Time to Interactive": audits.get('interactive', {}).get('displayValue', 'N/A')
+}
+
+# Define desirable ranges
+desirable_ranges = {
+    "First Contentful Paint": 1.8,
+    "Speed Index": 3.4,
+    "Largest Contentful Paint": 2.5,
+    "Time to Interactive": 3.8
+}
+
+# Create 2x2 grid for other metrics
+col1, col2 = st.columns(2)
+
+for i, (metric, value) in enumerate(metrics.items()):
+    with col1 if i % 2 == 0 else col2:
+        st.metric(
+            label=metric,
+            value=value,
+            delta="Good" if float(value.replace('s', '')) <= desirable_ranges[metric] else "Needs Improvement",
+            delta_color="normal" if float(value.replace('s', '')) <= desirable_ranges[metric] else "inverse"
+        )
+
+# Display metric descriptions
+st.subheader("Metric Descriptions")
+descriptions = {
+    "Performance Score": "A weighted average of key performance metrics, ranging from 0 to 100. It assesses the overall speed and responsiveness of a webpage.",
+    "First Contentful Paint (FCP)": "Measures the time from when the page starts loading to when any part of the page's content is rendered on the screen.",
+    "Speed Index (SI)": "Measures how quickly the content of a page is visually displayed during load.",
+    "Largest Contentful Paint (LCP)": "Measures the time from when the page starts loading to when the largest text block or image is rendered on the screen.",
+    "Time to Interactive (TTI)": "Measures the time it takes for the page to become fully interactive."
+}
+
+for metric, description in descriptions.items():
+    with st.expander(metric):
+        st.write(description)
+
