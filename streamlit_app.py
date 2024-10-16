@@ -67,7 +67,7 @@ def get_external_links(soup, domain):
 def get_body_text(soup):
     paragraphs = soup.find_all('p')
     body_text = ' '.join([p.get_text() for p in paragraphs])
-    return body_text[:500]
+    return body_text[:2000]
 
 # Function to get PageSpeed Insights metrics
 def get_pagespeed_metrics(url, api_key):
