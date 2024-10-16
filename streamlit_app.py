@@ -133,7 +133,7 @@ if 'pagespeed_metrics' in st.session_state.data:
     categories = lighthouse_result.get('categories', {})
     performance_score = categories.get('performance', {}).get('score', 'N/A') * 100
     performance_score = int(performance_score)
-
+    st.subheader('Page Speed Metrics', divider=True)
     fig = go.Figure(go.Indicator(
         mode="gauge+number",
         value=performance_score,
