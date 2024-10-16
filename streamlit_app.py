@@ -106,8 +106,7 @@ if st.button('Analyze') and api_key:
     # Meta Data
     st.subheader('Meta Data', divider=True)
     meta_title, meta_description = get_meta_data(soup)
-    st.subheader('Title')
-    st.text_input('Title:', meta_title)
+    st.text_input('Meta Title', meta_title)
     title_length = len(meta_title)
     if title_length > 60:
         st.warning(f"Title is too long: {title_length} characters (recommended: 55-60 characters)")
