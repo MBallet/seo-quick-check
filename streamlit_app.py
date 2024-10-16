@@ -106,7 +106,6 @@ if st.button('Analyze') and api_key:
     # Meta Data
     st.subheader('Meta Data', divider=True)
     meta_title, meta_description = get_meta_data(soup)
-    st.subheader('Meta Title')
     st.text_area('Current Title:' , meta_title)
     title_length = len(meta_title)
     if title_length > 60:
@@ -114,11 +113,10 @@ if st.button('Analyze') and api_key:
     else:
         st.success(f"Title length is good: {title_length} characters")
     
-    st.subheader('Description')
     if meta_description is None:
         st.error("No meta description found.")
     else:
-        st.text_area('Description:', meta_description)
+        st.text_area('Current Meta Description:', meta_description)
         description_length = len(meta_description)
         
     if meta_description is not None:
