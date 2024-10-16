@@ -100,7 +100,7 @@ if 'external_links' not in st.session_state:
     st.session_state['external_links'] = None
 
 if st.button('Analyze') and api_key:
-    include_pagespeed_analysis = include_pagespeed
+    st.session_state['include_pagespeed_analysis'] = include_pagespeed
     soup = fetch_url(url)
     st.session_state['soup'] = soup
     domain = url.split('//')[-1].split('/')[0]
@@ -213,7 +213,7 @@ if st.button('Analyze') and api_key:
         st.text(f"{body_text}")
 
     # PageSpeed Insights
-if include_pagespeed_analysis:
+if st.session_state.get('include_pagespeed_analysis', False):
     st.subheader('PageSpeed Insights')
     with st.spinner('Collecting page speed metrics from Google...'):
         try:
