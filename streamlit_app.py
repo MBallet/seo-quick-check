@@ -171,7 +171,7 @@ if st.button('Analyze') and api_key:
     if not internal_links:
         st.error("No internal links found on the page.")
     else:
-        total_internal_links = sum(internal_links.values())
+        total_internal_links = sum(data['count'] for data in internal_links.values())
         st.write(f"**Total Internal Links:** {total_internal_links} (Unique Links: {len(internal_links)})")
     internal_links_data = [(link, data['count'], data['anchor_text']) for link, data in internal_links.items()]
     df_internal_links = pd.DataFrame(internal_links_data, columns=['Internal Links', 'Count', 'Anchor Text'])
