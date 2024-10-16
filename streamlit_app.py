@@ -174,7 +174,7 @@ if st.button('Analyze') and api_key:
         total_internal_links = sum(internal_links.values())
         st.write(f"**Total Internal Links:** {total_internal_links} (Unique Links: {len(internal_links)})")
     internal_links_data = [(link, data['count'], data['anchor_text']) for link, data in internal_links.items()]
-df_internal_links = pd.DataFrame(internal_links_data, columns=['Internal Links', 'Count', 'Anchor Text'])
+    df_internal_links = pd.DataFrame(internal_links_data, columns=['Internal Links', 'Count', 'Anchor Text'])
     st.dataframe(df_internal_links)
     csv_internal_links = df_internal_links.to_csv(index=False)
     st.download_button(
@@ -194,7 +194,7 @@ df_internal_links = pd.DataFrame(internal_links_data, columns=['Internal Links',
     st.write(f"**Total External Links:** {total_external_links} (Unique Links: {len(external_links)})")
     st.write(f"**Total Follow Links:** {total_follow_links}, **Total Nofollow Links:** {total_nofollow_links}")
     external_links_data = [(link, data['count'], 'nofollow' if data['nofollow'] else 'follow', data['anchor_text']) for link, data in external_links.items()]
-df_external_links = pd.DataFrame(external_links_data, columns=['External Links', 'Count', 'Type', 'Anchor Text'])
+    df_external_links = pd.DataFrame(external_links_data, columns=['External Links', 'Count', 'Type', 'Anchor Text'])
     st.dataframe(df_external_links)
     csv_external_links = df_external_links.to_csv(index=False)
     st.download_button(
