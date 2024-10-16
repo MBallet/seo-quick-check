@@ -90,6 +90,13 @@ if st.button('Analyze') and api_key:
         heading_data = [(tag, text) for tag, texts in headings.items() for text in texts]
         df_headings = pd.DataFrame(heading_data, columns=['Heading Tag', 'Text'])
         st.dataframe(df_headings)
+        csv_headings = df_headings.to_csv(index=False)
+        st.download_button(
+            label="Download Heading Structure as CSV",
+            data=csv_headings,
+            file_name='heading_structure.csv',
+            mime='text/csv',
+        )
 
         # Internal Links
         st.subheader('Internal Links')
@@ -98,6 +105,13 @@ if st.button('Analyze') and api_key:
         st.write(f"**Total Internal Links:** {len(internal_links)}")
         df_internal_links = pd.DataFrame(internal_links, columns=['Internal Links'])
         st.dataframe(df_internal_links)
+        csv_internal_links = df_internal_links.to_csv(index=False)
+        st.download_button(
+            label="Download Internal Links as CSV",
+            data=csv_internal_links,
+            file_name='internal_links.csv',
+            mime='text/csv',
+        )
 
         # Body Text
         st.subheader('Body Text')
@@ -183,26 +197,3 @@ if st.button('Analyze') and api_key:
 
         except Exception as e:
             st.error(f"Error fetching PageSpeed Insights metrics: {e}")
-
-# Heading Structure CSV Download
-if st.session_state['headings'] is not None:
-    heading_data = [(tag, text) for tag, texts in st.session_state['headings'].items() for text in texts]
-    df_headings = pd.DataFrame(heading_data, columns=['Heading Tag', 'Text'])
-    csv_headings = df_headings.to_csv(index=False)
-    st.download_button(
-        label="Download Heading Structure as CSV",
-        data=csv_headings,
-        file_name='heading_structure.csv',
-        mime='text/csv',
-    )
-
-# Internal Links CSV Download
-if st.session_state['internal_links'] is not None:
-    df_internal_links = pd.DataFrame(st.session_state['internal_links'], columns=['Internal Links'])
-    csv_internal_links = df_internal_links.to_csv(index=False)
-    st.download_button(
-        label="Download Internal Links as CSV",
-        data=csv_internal_links,
-        file_name='internal_links.csv',
-        mime='text/csv',
-    )
