@@ -112,6 +112,8 @@ if st.button('Analyze') and api_key:
     title_length = len(meta_title)
     if title_length > 60:
         st.warning(f"Title is too long: {title_length} characters (recommended: 55-60 characters)")
+    elif title_length < 40:
+        st.warning(f"Title is too short: {title_length} characters (recommended: 40-60 characters)")
     else:
         st.success(f"Title length is good: {title_length} characters")
     
