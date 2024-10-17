@@ -139,10 +139,11 @@ if st.button('Analyze') and api_key:
     st.dataframe(df_headings)
     csv_headings = df_headings.to_csv(index=False)
     st.download_button(
-        key=f'download_{len(st.session_state)}',
-        on_click=lambda: None,
         label="Download Heading Structure as CSV",
         data=csv_headings,
+        file_name='heading_structure.csv',
+        mime='text/csv',
+        key='download_heading_structure'
         file_name='heading_structure.csv',
         mime='text/csv',
     )
@@ -182,10 +183,11 @@ if st.button('Analyze') and api_key:
     st.dataframe(df_internal_links)
     csv_internal_links = df_internal_links.to_csv(index=False)
     st.download_button(
-        key=f'download_{len(st.session_state)}',
-        on_click=lambda: None,
         label="Download Internal Links as CSV",
         data=csv_internal_links,
+        file_name='internal_links.csv',
+        mime='text/csv',
+        key='download_internal_links'
         file_name='internal_links.csv',
         mime='text/csv',
     )
@@ -204,10 +206,11 @@ if st.button('Analyze') and api_key:
     st.dataframe(df_external_links)
     csv_external_links = df_external_links.to_csv(index=False)
     st.download_button(
-        key=f'download_{len(st.session_state)}',
-        on_click=lambda: None,
         label="Download External Links as CSV",
         data=csv_external_links,
+        file_name='external_links.csv',
+        mime='text/csv',
+        key='download_external_links'
         file_name='external_links.csv',
         mime='text/csv',
     )
