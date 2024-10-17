@@ -139,6 +139,7 @@ if st.button('Analyze') and api_key:
     st.dataframe(df_headings)
     csv_headings = df_headings.to_csv(index=False)
     st.download_button(
+        key=f"download_{len(st.session_state)}",
         label="Download Heading Structure as CSV",
         data=csv_headings,
         file_name='heading_structure.csv',
@@ -180,6 +181,7 @@ if st.button('Analyze') and api_key:
     st.dataframe(df_internal_links)
     csv_internal_links = df_internal_links.to_csv(index=False)
     st.download_button(
+        key=f"download_{len(st.session_state)}",
         label="Download Internal Links as CSV",
         data=csv_internal_links,
         file_name='internal_links.csv',
@@ -200,6 +202,7 @@ if st.button('Analyze') and api_key:
     st.dataframe(df_external_links)
     csv_external_links = df_external_links.to_csv(index=False)
     st.download_button(
+        key=f"download_{len(st.session_state)}",
         label="Download External Links as CSV",
         data=csv_external_links,
         file_name='external_links.csv',
