@@ -138,13 +138,12 @@ if st.button('Analyze') and api_key:
     df_headings = pd.DataFrame(heading_data, columns=['Heading Tag', 'Text'])
     st.dataframe(df_headings)
     csv_headings = df_headings.to_csv(index=False)
-    
+    st.download_button(
+        label='Download Heading Structure CSV',
+        data=csv_headings,
         file_name='heading_structure.csv',
         mime='text/csv',
-        key='download_heading_structure',
-        file_name='heading_structure.csv',
-        mime='text/csv',
-        key='download_heading_structure',
+        key='download_heading_structure'
     )
 
     # Heading warnings and success messages
@@ -181,13 +180,12 @@ if st.button('Analyze') and api_key:
     df_internal_links = pd.DataFrame(internal_links_data, columns=['Internal Links', 'Count', 'Anchor Text'])
     st.dataframe(df_internal_links)
     csv_internal_links = df_internal_links.to_csv(index=False)
-    
+    st.download_button(
+        label='Download Internal Links CSV',
+        data=csv_internal_links,
         file_name='internal_links.csv',
         mime='text/csv',
-        key='download_internal_links',
-        file_name='internal_links.csv',
-        mime='text/csv',
-        key='download_internal_links',
+        key='download_internal_links'
     )
 
     # External Links
@@ -203,13 +201,12 @@ if st.button('Analyze') and api_key:
     df_external_links = pd.DataFrame(external_links_data, columns=['External Links', 'Count', 'Type', 'Anchor Text'])
     st.dataframe(df_external_links)
     csv_external_links = df_external_links.to_csv(index=False)
-    
+    st.download_button(
+        label='Download External Links CSV',
+        data=csv_external_links,
         file_name='external_links.csv',
         mime='text/csv',
-        key='download_external_links',
-        file_name='external_links.csv',
-        mime='text/csv',
-        key='download_external_links',
+        key='download_external_links'
     )
 
     # Body Text
